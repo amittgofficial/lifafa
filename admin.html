@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>LifafaXAMIT Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #111; color: #fff; font-family: sans-serif; padding: 20px; }
+    input, textarea, button { width: 100%; margin: 10px 0; padding: 10px; border-radius: 5px; }
+    #mainTool { display: none; }
+    .toast { background: #333; color: #fff; padding: 10px; border-radius: 5px; position: fixed; top: 10px; right: 10px; z-index: 99; }
+  </style>
+</head>
+<body>
+
+<h2>LifafaXAMIT 🔐 Admin Panel</h2>
+
+<!-- OTP Login -->
+<div id="loginBox">
+  <input type="text" id="adminNumber" placeholder="Enter your Telegram number">
+  <button onclick="sendOTP()">Send OTP</button>
+  <input type="text" id="otpInput" placeholder="Enter OTP">
+  <button onclick="verifyOTP()">Verify</button>
+</div>
+
+<!-- Main Tool -->
+<div id="mainTool">
+  <textarea id="numberInput" rows="6" placeholder="Paste numbers (comma or line-separated)"></textarea>
+  <input type="text" id="title" placeholder="Lifafa Title">
+  <input type="number" id="amount" placeholder="Amount ₹">
+  <button onclick="cleanNumbers()">Clean Numbers</button>
+  <button onclick="createLifafa()">Create Lifafa</button>
+  <button onclick="banNumbers()">Ban These Numbers</button>
+  <div id="outputArea"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyC_cheD-4h3y_KJnPpk1W-dcl4RfszZNxY",
+  authDomain: "lifafaxamit.firebaseapp.com",
+  projectId: "lifafaxamit",
+  storageBucket: "lifafaxamit.firebasestorage.app",
+  messagingSenderId: "528812070935",
+  appId: "1:528812070935:web:2eb06b0f65ce5995122452",
+  measurementId: "G-NT1PFJKS82"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+let generatedOTP = "";
+let adminID = "7412418424"; // your Telegram ID
+
+function sendOTP() {
+  const otp = Math.floor(100000 + Math.random() * 900000);
+  generatedOTP = otp.toString();
+  const number = document.getElementById('adminNumber').value;
+  fetch(`https://api.telegram.org/bot7026216027:AAHY31TUjUK3qATucKZ9pWFcQI30V-Ilc9o/sendMessage?chat_id=${adminID}&text=Your LifafaXAMIT OTP is ${otp}`);
+  toast("OTP sent to Telegram ✅");
+}
+
+function verifyOTP() {
+  const input = document.getElementById("otpInput").value;
+  if (input === generatedOTP) {
+    toast("Login successful 🔓");
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("mainTool").style.display = "block";
+    fetch(`https://api.telegram.org/bot7026216027:AAHY31TUjUK3qATucKZ9pWFcQI30V-Ilc9o/sendMessage?chat_id=${adminID}&text=Admin Logged in to LifafaXAMIT 🚀`);
+  } else {
+    toast("❌ Invalid OTP");
+  }
+}
+
+function cleanNumbers() {
+  let input = document.getElementById('numberInput').value;
+  input = input.replace(/\n/g, ',');
+  let numbers = input.split(',').map(n => n.trim()).filter(n => /^\d{10}$/.test(n));
+  db.collection("banned").get().then(snapshot => {
+    const banned = snapshot.docs.map(doc => doc.id);
+    const fresh = numbers.filter(n => !banned.includes(n));
+    const duplicate = [...new Set(numbers.filter((v, i, a) => a.indexOf(v) !== i))];
+    let html = `<b>Fresh (${fresh.length}):</b><br>${fresh.join(',')}<br><br>`;
+    html += `<b>Duplicate (${duplicate.length}):</b><br>${duplicate.join(',')}`;
+    document.getElementById('outputArea').innerHTML = html;
+    toast("Numbers cleaned successfully 🧹");
+  });
+}
+
+function createLifafa() {
+  let title = document.getElementById('title').value;
+  let amount = document.getElementById('amount').value;
+  let numbers = document.getElementById('outputArea').innerText.split('\n')[1].split(',');
+  let code = Math.random().toString(36).substring(2, 8).toUpperCase();
+  db.collection("lifafas").doc(code).set({
+    title, amount, numbers, code, createdAt: new Date().toISOString()
+  }).then(() => {
+    toast("🎁 Lifafa Created");
+    fetch(`https://api.telegram.org/bot7026216027:AAHY31TUjUK3qATucKZ9pWFcQI30V-Ilc9o/sendMessage?chat_id=${adminID}&text=🎁 Lifafa Created\nCode: ${code}\nTitle: ${title}\nAmount: ₹${amount}`);
+  });
+}
+
+function banNumbers() {
+  let input = document.getElementById('numberInput').value;
+  input = input.replace(/\n/g, ',');
+  let numbers = input.split(',').map(n => n.trim()).filter(n => /^\d{10}$/.test(n));
+  let count = 0;
+  numbers.forEach(num => {
+    db.collection("banned").doc(num).set({ blocked: true });
+    count++;
+  });
+  toast(`🔒 ${count} numbers banned`);
+  fetch(`https://api.telegram.org/bot7026216027:AAHY31TUjUK3qATucKZ9pWFcQI30V-Ilc9o/sendMessage?chat_id=${adminID}&text=🔒 ${count} numbers banned from panel`);
+}
+
+function toast(msg) {
+  let div = document.createElement("div");
+  div.className = "toast";
+  div.innerText = msg;
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 3000);
+}
+</script>
+
+</body>
+</html>
