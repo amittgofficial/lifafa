@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>LifafaXAMIT History</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #111; color: #fff; font-family: sans-serif; padding: 20px; }
+    .card { background: #222; padding: 10px; margin: 10px 0; border-radius: 8px; }
+    button { margin: 5px; }
+    .toast { background: #333; color: #fff; padding: 10px; border-radius: 5px; position: fixed; top: 10px; right: 10px; z-index: 99; }
+  </style>
+</head>
+<body>
+
+<h2>📜 Lifafa History</h2>
+<div id="lifafaList">Loading...</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyC_cheD-4h3y_KJnPpk1W-dcl4RfszZNxY",
+  authDomain: "lifafaxamit.firebaseapp.com",
+  projectId: "lifafaxamit",
+  storageBucket: "lifafaxamit.firebasestorage.app",
+  messagingSenderId: "528812070935",
+  appId: "1:528812070935:web:2eb06b0f65ce5995122452",
+  measurementId: "G-NT1PFJKS82"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+function toast(msg) {
+  let div = document.createElement("div");
+  div.className = "toast";
+  div.innerText = msg;
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 3000);
+}
+
+db.collection("lifafas").orderBy("createdAt", "desc").get().then(snapshot => {
+  const lifafaList = document.getElementById("lifafaList");
+  lifafaList.innerHTML = "";
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    const div = document.createElement("div");
+    div.className = "card";
+    div.innerHTML = `
+      <b>📦 Code:</b> ${data.code}<br>
+      <b>📛 Title:</b> ${data.title}<br>
+      <b>💰 Amount:</b> ₹${data.amount}<br>
+      <b>📅 Date:</b> ${new Date(data.createdAt).toLocaleString()}<br>
+      <button onclick="copyCode('${data.code}')">📋 Copy Code</button>
+      <button onclick="viewLifafa('${data.code}')">🔍 View</button>
+      <button onclick="deleteLifafa('${data.code}')">🗑️ Delete</button>
+    `;
+    lifafaList.appendChild(div);
+  });
+});
+
+function copyCode(code) {
+  navigator.clipboard.writeText(code);
+  toast("Code copied!");
+}
+
+function viewLifafa(code) {
+  window.open(`lifafa.html?code=${code}`, '_blank');
+}
+
+function deleteLifafa(code) {
+  if (confirm("Delete this lifafa?")) {
+    db.collection("lifafas").doc(code).delete().then(() => {
+      toast("Deleted ✅");
+      location.reload();
+    });
+  }
+}
+</script>
+</body>
+</html>
