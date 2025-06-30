@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Ban List - LifafaXAMIT</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #111; color: #fff; font-family: sans-serif; padding: 20px; }
+    .card { background: #222; padding: 10px; margin: 10px 0; border-radius: 8px; }
+    button { padding: 5px 10px; margin-top: 5px; }
+    .toast {
+      background: #333; color: #fff;
+      padding: 10px; border-radius: 5px;
+      position: fixed; top: 10px; right: 10px; z-index: 99;
+    }
+  </style>
+</head>
+<body>
+
+<h2>🚫 Banned Numbers</h2>
+<div id="banList">Loading...</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyC_cheD-4h3y_KJnPpk1W-dcl4RfszZNxY",
+  authDomain: "lifafaxamit.firebaseapp.com",
+  projectId: "lifafaxamit",
+  storageBucket: "lifafaxamit.firebasestorage.app",
+  messagingSenderId: "528812070935",
+  appId: "1:528812070935:web:2eb06b0f65ce5995122452"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+function toast(msg) {
+  let div = document.createElement("div");
+  div.className = "toast";
+  div.innerText = msg;
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 3000);
+}
+
+function loadBanList() {
+  db.collection("banned").get().then(snapshot => {
+    const list = document.getElementById("banList");
+    list.innerHTML = "";
+    if (snapshot.empty) {
+      list.innerHTML = "✅ No banned numbers!";
+      return;
+    }
+    snapshot.forEach(doc => {
+      const div = document.createElement("div");
+      div.className = "card";
+      div.innerHTML = `
+        <b>📞 ${doc.id}</b><br>
+        <button onclick="unban('${doc.id}')">🧹 Unban</button>
+      `;
+      list.appendChild(div);
+    });
+  });
+}
+
+function unban(number) {
+  db.collection("banned").doc(number).delete().then(() => {
+    toast(`✅ Unbanned ${number}`);
+    loadBanList();
+  });
+}
+
+loadBanList();
+</script>
+
+</body>
+</html>
