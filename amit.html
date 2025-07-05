@@ -24,13 +24,21 @@
     }
 
     .nav button {
-      background: none;
+      background: linear-gradient(135deg, #0a84ff, #0061ff);
       border: none;
-      color: #0af;
-      font-size: 1.1em;
-      font-weight: bold;
-      padding: 10px;
+      color: white;
+      font-size: 1em;
+      font-weight: 600;
+      padding: 10px 20px;
+      border-radius: 12px;
+      margin: 5px;
       cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .nav button:hover {
+      background: linear-gradient(135deg, #2fafff, #007eff);
+      transform: scale(1.05);
     }
 
     .section {
@@ -40,7 +48,7 @@
       margin: 20px auto;
       background: #1a1a1a;
       border-radius: 15px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.6);
     }
 
     .section.active {
@@ -49,29 +57,43 @@
 
     textarea, input {
       width: 100%;
-      font-size: 1em;
-      padding: 12px;
+      font-size: 0.95em;
+      padding: 10px;
       margin-top: 10px;
-      border: none;
-      border-radius: 10px;
+      border: 1px solid #333;
+      border-radius: 8px;
       background: #222;
       color: #fff;
+      resize: vertical;
+    }
+
+    textarea::placeholder, input::placeholder {
+      color: #888;
+      font-size: 0.9em;
     }
 
     textarea {
-      height: 300px;
+      height: 150px;
     }
 
     button.action {
       margin-top: 15px;
       width: 100%;
-      background: #0a84ff;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
       color: white;
       font-size: 1em;
       padding: 12px;
       border: none;
-      border-radius: 10px;
+      border-radius: 12px;
       cursor: pointer;
+      font-weight: 600;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      transition: all 0.3s ease;
+    }
+
+    button.action:hover {
+      background: linear-gradient(135deg, #1cb5e0, #000851);
+      transform: scale(1.03);
     }
 
     .output, .result-box {
@@ -88,7 +110,7 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: #222;
+      background: #000;
       padding: 15px 25px;
       color: #0f0;
       border-radius: 12px;
@@ -96,6 +118,7 @@
       display: none;
       font-size: 1.1em;
       text-align: center;
+      box-shadow: 0 0 12px rgba(0,255,0,0.2);
     }
 
     .history-entry {
@@ -124,6 +147,7 @@
       border-radius: 10px;
       font-family: monospace;
       white-space: pre-wrap;
+      color: #0af;
     }
   </style>
 </head>
@@ -137,7 +161,6 @@
   <button onclick="showSection('linkFormatter')">🔗 Link</button>
 </div>
 
-<!-- HOME SECTION -->
 <div id="home" class="section active">
   <textarea id="listInput" placeholder="Paste your list..."></textarea>
   <button class="action" onclick="calculate()">✅ Calculate</button>
@@ -148,27 +171,23 @@
   </div>
 </div>
 
-<!-- HISTORY SECTION -->
 <div id="history" class="section">
   <h2>📚 History</h2>
   <div id="historyList"></div>
 </div>
 
-<!-- MANUAL SECTION -->
 <div id="manual" class="section">
   <input id="manualTotal" type="number" placeholder="Enter total">
   <input id="manualDate" type="text" placeholder="Enter date (e.g. 25 June)">
   <button class="action" onclick="manualAdd()">✅ Submit</button>
 </div>
 
-<!-- LINE COUNT SECTION -->
 <div id="line" class="section">
   <textarea id="lineInput" placeholder="Paste full mixed list here..."></textarea>
   <button class="action" onclick="countLines()">📏 Count Lines</button>
   <div class="result-box" id="lineResult" style="display:none;"></div>
 </div>
 
-<!-- LINK FORMATTER SECTION -->
 <div id="linkFormatter" class="section">
   <h2>🔗 Link Formatter Tool</h2>
   <textarea id="serials" placeholder="Paste full content with date + serial lines..."></textarea>
@@ -181,7 +200,6 @@
   </div>
 </div>
 
-<!-- TOAST -->
 <div id="toast" class="toast">Copied!</div>
 
 <script>
@@ -367,6 +385,7 @@ Fresh: ${fresh}`;
 
     document.getElementById("output").innerText = output.trim();
     document.getElementById("outputSection").style.display = "block";
+    document.getElementById("outputSection").scrollIntoView({ behavior: "smooth" });
     showToast("Formatted Successfully ✅");
   }
 
