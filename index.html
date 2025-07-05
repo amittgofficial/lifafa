@@ -184,6 +184,35 @@ body.dark button {
 body.dark .bottom-nav {
   background: #000;
 }
+    #linkFormatter textarea {
+  height: 180px;
+  margin-bottom: 10px;
+}
+
+pre {
+  background: #111;
+  padding: 15px;
+  border-radius: 10px;
+  font-family: monospace;
+  white-space: pre-wrap;
+  font-size: 15px;
+}
+
+.toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #222;
+  padding: 15px 25px;
+  color: #0f0;
+  border-radius: 12px;
+  z-index: 999;
+  display: none;
+  font-size: 1.1em;
+  text-align: center;
+    }
+    
   </style>
 </head>
 <body>
@@ -203,6 +232,25 @@ body.dark .bottom-nav {
     <button onclick="showEditPopup()">✏️ Edit</button>
   </div>
 
+  <div id="linkFormatter" class="section">
+  <h2>🔗 Link Formatter Tool</h2>
+
+  <textarea id="serials" placeholder="Paste full content with date + serial lines..."></textarea>
+  <textarea id="links" placeholder="Paste links (one per line, use 'deleted' where needed)..."></textarea>
+
+  <button class="action" onclick="adjustLinks()">✅ Submit</button>
+
+  <div class="output" id="outputSection" style="display:none;">
+    <h3>Formatted Output</h3>
+    <pre id="output"></pre>
+    <button class="action" onclick="copyOutput()">📋 Copy Output</button>
+  </div>
+</div>
+
+<!-- Toast for notification -->
+<div id="toast" class="toast">Copied!</div>
+
+  
   <div class="output-section" id="outputSection">
     <div id="result" class="output">No data.</div>
     <button id="copyBtn" class="btn-copy" onclick="copyResult()">📋 Copy</button>
@@ -280,6 +328,60 @@ body.dark .bottom-nav {
 <script>
 let userData = { date: '', list: [], original: '', nextIndex: 0 };
 
+
+  function adjustLinks() {
+  const serialInput = document.getElementById("serials").value.trim().split("\n").filter(Boolean);
+  const links = document.getElementById("links").value.trim().split("\n").filter(Boolean);
+
+  let output = "";
+  let linkIndex = 0;
+  let startProcessing = false;
+
+  for (let i = 0; i < serialInput.length; i++) {
+    const line = serialInput[i].trim();
+
+    if (!startProcessing) {
+      output += line + "\n\n";
+      if (line.startsWith("****")) startProcessing = true;
+      continue;
+    }
+
+    const firstColMatch = line.match(/^(\d+\.)/);
+    if (firstColMatch) {
+      const serial = firstColMatch[1];
+      let link = links[linkIndex] ? links[linkIndex].trim() : "";
+      while (link === "") {
+        linkIndex++;
+        link = links[linkIndex] ? links[linkIndex].trim() : "";
+      }
+
+      const formattedLink = link.toLowerCase().includes("delete") ? "`deleted`" : "`" + link + "`";
+      output += `${serial} ${formattedLink}\n\n`;
+      linkIndex++;
+    }
+  }
+
+  document.getElementById("output").innerText = output.trim();
+  document.getElementById("outputSection").style.display = "block";
+  showToast("Formatted Successfully ✅");
+}
+
+function copyOutput() {
+  const text = document.getElementById("output").innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    showToast("Copied to Clipboard 📋");
+  });
+}
+
+function showToast(msg) {
+  const toast = document.getElementById("toast");
+  toast.innerText = msg;
+  toast.style.display = 'block';
+  setTimeout(() => {
+    toast.style.display = 'none';
+  }, 2000);
+}
+  
 function hideUserListPopup(e) {
   if (!e || e.target.id === "userListPopup") {
     document.getElementById("userListPopup").style.display = "none";
