@@ -158,6 +158,12 @@
   <button onclick="showSection('history')">📚 History</button>
   <button onclick="showSection('manual')">➕ Add</button>
   <button onclick="showSection('line')">📏 Line</button>
+  <hr style="margin:20px 0; border-color: #333;">
+
+<h3>📅 Extract Date + Fresh Lines</h3>
+<textarea id="dateLineInput" placeholder="Paste list with date + lines..."></textarea>
+<div class="output" id="dateLineResult" style="display:none;"></div>
+<button class="action" onclick="addFromLines()">➕ Add to Total</button>
   <button onclick="showSection('linkFormatter')">🔗 Link</button>
   <button onclick="showSection('post')">📝 Post</button>
   
@@ -369,6 +375,54 @@ Fresh: ${fresh}`;
     box.style.display = "block";
   }
   document.getElementById("lineInput").value = "";
+
+  function addFromLines() {
+  const input = document.getElementById("dateLineInput").value.trim();
+  const lines = input.split('\n').filter(l => l.trim().length > 0);
+
+  let fresh = 0;
+  let foundDate = "";
+
+  lines.forEach(line => {
+    const dateRegex = /^(\d{1,2})\s+(january|february|march|april|may|june|july|august|september|october|november|december)$/i;
+    const dateMatch = line.trim().match(dateRegex);
+    if (dateMatch) {
+      foundDate = `${dateMatch[1]} ${capitalize(dateMatch[2])}`;
+    }
+
+    const clean = line.trim().toLowerCase();
+    if (/^\d+\.\s+[a-z0-9]{4,}\s+\d+\s+\d+$/i.test(clean) || /^\d+\.\s+[a-z0-9]{4,}\s+\d+$/i.test(clean)) {
+      fresh++;
+    }
+  });
+
+  if (!foundDate) {
+    showToast("❌ Date not found in lines!", "#f33");
+    return;
+  }
+
+  if (fresh === 0) {
+    showToast("❌ No fresh lines found!", "#f33");
+    return;
+  }
+
+  // Add to total and history
+  total += fresh;
+  lastDate = foundDate;
+  history[foundDate] = (history[foundDate] || 0) + fresh;
+
+  localStorage.setItem('total', total);
+  localStorage.setItem('lastDate', lastDate);
+  localStorage.setItem('history', JSON.stringify(history));
+
+  updateLive();
+  document.getElementById("dateLineInput").value = "";
+  document.getElementById("dateLineResult").innerText = `📅 Date: ${foundDate}\n🆕 Fresh Count: ${fresh}`;
+  document.getElementById("dateLineResult").style.display = "block";
+
+  showToast(`✅ ${fresh} lines added for ${foundDate}`);
+  showSection('home');
+  }
 
   function adjustLinks() {
     const serialInput = document.getElementById("serials").value.trim().split("\n").filter(Boolean);
