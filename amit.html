@@ -154,16 +154,10 @@
 <body>
 
 <div class="nav">
-  <button onclick="showSection('home')">🏠 Home</button>
+  <button onclick="location.reload()">🏠 Home</button>
   <button onclick="showSection('history')">📚 History</button>
   <button onclick="showSection('manual')">➕ Add</button>
   <button onclick="showSection('line')">📏 Line</button>
-  <hr style="margin:20px 0; border-color: #333;">
-
-<h3>📅 Extract Date + Fresh Lines</h3>
-<textarea id="dateLineInput" placeholder="Paste list with date + lines..."></textarea>
-<div class="output" id="dateLineResult" style="display:none;"></div>
-<button class="action" onclick="addFromLines()">➕ Add to Total</button>
   <button onclick="showSection('linkFormatter')">🔗 Link</button>
   <button onclick="showSection('post')">📝 Post</button>
   
@@ -194,6 +188,11 @@
   <textarea id="lineInput" placeholder="Paste full mixed list here..."></textarea>
   <button class="action" onclick="countLines()">📏 Count Lines</button>
   <div class="result-box" id="lineResult" style="display:none;"></div>
+  <div class="result-box" id="lineSummary" style="display:none; margin-top: 10px;">
+    <div id="lineDateText">📅 Date: -</div>
+    <div id="lineFreshText">🆕 Fresh Lines: 0</div>
+    <button class="action" onclick="addFromLineCount()">➕ Add to Total</button>
+  </div>
 </div>
 
 <div id="linkFormatter" class="section">
@@ -345,83 +344,47 @@
     }
   }
 
+  
   function countLines() {
     const input = document.getElementById("lineInput").value.trim();
     const lines = input.split('\n').filter(l => l.trim().length > 0);
 
-    let total = 0;
+    let totalLines = 0;
     let deleted = 0;
     let fresh = 0;
+    let foundDate = "";
 
     lines.forEach(line => {
       const clean = line.trim().toLowerCase();
+      const dateRegex = /^(\d{1,2})\s+(january|february|march|april|may|june|july|august|september|october|november|december)$/i;
+      const dateMatch = line.trim().match(dateRegex);
+      if (dateMatch) {
+        foundDate = `${dateMatch[1]} ${capitalize(dateMatch[2])}`;
+      }
       if (/^\d+\.\s+deleted$/.test(clean)) {
         deleted++;
-        total++;
+        totalLines++;
       } else if (/^\d+\.\s+[a-z0-9]{4,}\s+\d+\s+\d+$/i.test(clean)) {
         fresh++;
-        total++;
+        totalLines++;
       } else if (/^\d+\.\s+[a-z0-9]{4,}\s+\d+$/i.test(clean)) {
         fresh++;
-        total++;
+        totalLines++;
       }
     });
 
-    const result = `Total Lines: ${total}  
-Deleted: ${deleted}  
-Fresh: ${fresh}`;
-    const box = document.getElementById("lineResult");
-    box.innerText = result;
-    box.style.display = "block";
-  }
-  document.getElementById("lineInput").value = "";
+    document.getElementById("lineResult").innerText = `Total Lines: ${totalLines}\nDeleted: ${deleted}\nFresh: ${fresh}`;
+    document.getElementById("lineResult").style.display = "block";
 
-  function addFromLines() {
-  const input = document.getElementById("dateLineInput").value.trim();
-  const lines = input.split('\n').filter(l => l.trim().length > 0);
-
-  let fresh = 0;
-  let foundDate = "";
-
-  lines.forEach(line => {
-    const dateRegex = /^(\d{1,2})\s+(january|february|march|april|may|june|july|august|september|october|november|december)$/i;
-    const dateMatch = line.trim().match(dateRegex);
-    if (dateMatch) {
-      foundDate = `${dateMatch[1]} ${capitalize(dateMatch[2])}`;
+    if (fresh > 0 && foundDate) {
+      document.getElementById("lineDateText").innerText = `📅 Date: ${foundDate}`;
+      document.getElementById("lineFreshText").innerText = `🆕 Fresh Lines: ${fresh}`;
+      document.getElementById("lineSummary").style.display = "block";
+      window.lineFreshCount = fresh;
+      window.lineFoundDate = foundDate;
+    } else {
+      document.getElementById("lineSummary").style.display = "none";
     }
-
-    const clean = line.trim().toLowerCase();
-    if (/^\d+\.\s+[a-z0-9]{4,}\s+\d+\s+\d+$/i.test(clean) || /^\d+\.\s+[a-z0-9]{4,}\s+\d+$/i.test(clean)) {
-      fresh++;
-    }
-  });
-
-  if (!foundDate) {
-    showToast("❌ Date not found in lines!", "#f33");
-    return;
-  }
-
-  if (fresh === 0) {
-    showToast("❌ No fresh lines found!", "#f33");
-    return;
-  }
-
-  // Add to total and history
-  total += fresh;
-  lastDate = foundDate;
-  history[foundDate] = (history[foundDate] || 0) + fresh;
-
-  localStorage.setItem('total', total);
-  localStorage.setItem('lastDate', lastDate);
-  localStorage.setItem('history', JSON.stringify(history));
-
-  updateLive();
-  document.getElementById("dateLineInput").value = "";
-  document.getElementById("dateLineResult").innerText = `📅 Date: ${foundDate}\n🆕 Fresh Count: ${fresh}`;
-  document.getElementById("dateLineResult").style.display = "block";
-
-  showToast(`✅ ${fresh} lines added for ${foundDate}`);
-  showSection('home');
   }
 
   function adjustLinks() {
@@ -469,7 +432,7 @@ Fresh: ${fresh}`;
     });
   }
   
-   
+  
 
   function showToast(msg, color = "#0f0") {
     const toast = document.getElementById('toast');
