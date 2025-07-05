@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🧮 AmitXBhai Tool</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #101010;
+      color: #fff;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: space-around;
+      background: #151515;
+      padding: 15px 0;
+      border-bottom: 1px solid #222;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      flex-wrap: wrap;
+    }
+
+    .nav button {
+      background: none;
+      border: none;
+      color: #0af;
+      font-size: 1.1em;
+      font-weight: bold;
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    .section {
+      display: none;
+      padding: 20px;
+      max-width: 600px;
+      margin: 20px auto;
+      background: #1a1a1a;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    textarea, input {
+      width: 100%;
+      font-size: 1em;
+      padding: 12px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 10px;
+      background: #222;
+      color: #fff;
+    }
+
+    textarea {
+      height: 300px;
+    }
+
+    button.action {
+      margin-top: 15px;
+      width: 100%;
+      background: #0a84ff;
+      color: white;
+      font-size: 1em;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .output, .result-box {
+      margin-top: 20px;
+      background: #1c1c1c;
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+      line-height: 1.6em;
+    }
+
+    .toast {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #222;
+      padding: 15px 25px;
+      color: #0f0;
+      border-radius: 12px;
+      z-index: 999;
+      display: none;
+      font-size: 1.1em;
+      text-align: center;
+    }
+
+    .history-entry {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #333;
+    }
+
+    .history-entry span.date {
+      font-weight: bold;
+    }
+
+    .history-entry button {
+      background: none;
+      border: none;
+      color: #f55;
+      font-size: 1.2em;
+      cursor: pointer;
+    }
+
+    pre {
+      background: #111;
+      padding: 15px;
+      border-radius: 10px;
+      font-family: monospace;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+
+<div class="nav">
+  <button onclick="showSection('home')">🏠 Home</button>
+  <button onclick="showSection('history')">📚 History</button>
+  <button onclick="showSection('manual')">➕ Add</button>
+  <button onclick="showSection('line')">📏 Line</button>
+  <button onclick="showSection('linkFormatter')">🔗 Link</button>
+</div>
+
+<!-- HOME SECTION -->
+<div id="home" class="section active">
+  <textarea id="listInput" placeholder="Paste your list..."></textarea>
+  <button class="action" onclick="calculate()">✅ Calculate</button>
+  <div class="output" id="liveOutput" style="display:none;">
+    <div>➕ Total: <b id="totalValue">0</b></div>
+    <div>📅 Date: <b id="dateValue">-</b></div>
+    <button class="action" style="background:#e74c3c;" onclick="resetTotal()">♻️ Reset</button>
+  </div>
+</div>
+
+<!-- HISTORY SECTION -->
+<div id="history" class="section">
+  <h2>📚 History</h2>
+  <div id="historyList"></div>
+</div>
+
+<!-- MANUAL SECTION -->
+<div id="manual" class="section">
+  <input id="manualTotal" type="number" placeholder="Enter total">
+  <input id="manualDate" type="text" placeholder="Enter date (e.g. 25 June)">
+  <button class="action" onclick="manualAdd()">✅ Submit</button>
+</div>
+
+<!-- LINE COUNT SECTION -->
+<div id="line" class="section">
+  <textarea id="lineInput" placeholder="Paste full mixed list here..."></textarea>
+  <button class="action" onclick="countLines()">📏 Count Lines</button>
+  <div class="result-box" id="lineResult" style="display:none;"></div>
+</div>
+
+<!-- LINK FORMATTER SECTION -->
+<div id="linkFormatter" class="section">
+  <h2>🔗 Link Formatter Tool</h2>
+  <textarea id="serials" placeholder="Paste full content with date + serial lines..."></textarea>
+  <textarea id="links" placeholder="Paste links (one per line, use 'deleted' where needed)..."></textarea>
+  <button class="action" onclick="adjustLinks()">✅ Submit</button>
+  <div class="output" id="outputSection" style="display:none;">
+    <h3>Formatted Output</h3>
+    <pre id="output"></pre>
+    <button class="action" onclick="copyOutput()">📋 Copy Output</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast">Copied!</div>
+
+<script>
+  let total = parseInt(localStorage.getItem('total') || 0);
+  let lastDate = localStorage.getItem('lastDate') || "-";
+  let history = JSON.parse(localStorage.getItem('history') || '{}');
+
+  function updateLive() {
+    document.getElementById('totalValue').innerText = total;
+    document.getElementById('dateValue').innerText = lastDate;
+    document.getElementById('liveOutput').style.display = total > 0 ? 'block' : 'none';
+  }
+
+  function showSection(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    if (id === 'history') loadHistory();
+  }
+
+  function showToast(msg, color = "#0f0") {
+    const toast = document.getElementById('toast');
+    toast.innerText = msg;
+    toast.style.color = color;
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 2500);
+  }
+
+  function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  }
+
+  function calculate() {
+    const text = document.getElementById("listInput").value.trim();
+    const lines = text.split('\n');
+    let sum = 0, foundDate = "";
+
+    lines.forEach(line => {
+      const parts = line.trim().split(/\s+/);
+      const dateRegex = /^(\d{1,2})\s+(january|february|march|april|may|june|july|august|september|october|november|december)$/i;
+      const dateMatch = line.trim().match(dateRegex);
+      if (dateMatch) {
+        foundDate = `${dateMatch[1]} ${capitalize(dateMatch[2])}`;
+      }
+      if (parts.length >= 3) {
+        const val = parseInt(parts[2]);
+        if (!isNaN(val)) sum += val;
+      }
+    });
+
+    if (sum > 0 && foundDate) {
+      total += sum;
+      lastDate = foundDate;
+      history[foundDate] = (history[foundDate] || 0) + sum;
+      localStorage.setItem('total', total);
+      localStorage.setItem('lastDate', lastDate);
+      localStorage.setItem('history', JSON.stringify(history));
+      document.getElementById('listInput').value = "";
+      updateLive();
+      showToast(`✅ ${sum} added for ${foundDate}`);
+    } else if (sum === 0) {
+      showToast("❌ No valid 3rd column numbers found.", "#f33");
+    } else if (!foundDate) {
+      showToast("❌ Date missing. Please add line like '26 June'", "#f33");
+    } else {
+      showToast("❌ Invalid input.", "#f33");
+    }
+  }
+
+  function resetTotal() {
+    if (confirm("Reset only total & date? History will remain.")) {
+      total = 0;
+      lastDate = "-";
+      localStorage.setItem('total', "0");
+      localStorage.setItem('lastDate', "-");
+      updateLive();
+      showToast("🔄 Total reset!");
+    }
+  }
+
+  function loadHistory() {
+    const histBox = document.getElementById("historyList");
+    histBox.innerHTML = "";
+    const sorted = Object.entries(history).sort();
+    sorted.forEach(([date, val]) => {
+      const div = document.createElement("div");
+      div.className = "history-entry";
+      div.innerHTML = `<span class="date">${date} — ${val}</span>
+                       <button onclick="confirmDelete('${date}')">❌</button>`;
+      histBox.appendChild(div);
+    });
+  }
+
+  function confirmDelete(date) {
+    if (confirm(`Delete entry for ${date}?`)) {
+      delete history[date];
+      localStorage.setItem("history", JSON.stringify(history));
+      loadHistory();
+      showToast(`🗑️ Deleted ${date}`, "#f33");
+    }
+  }
+
+  function manualAdd() {
+    const val = parseInt(document.getElementById('manualTotal').value);
+    const date = document.getElementById('manualDate').value.trim();
+    if (!isNaN(val) && date) {
+      total += val;
+      lastDate = date;
+      history[date] = (history[date] || 0) + val;
+      localStorage.setItem('total', total);
+      localStorage.setItem('lastDate', lastDate);
+      localStorage.setItem('history', JSON.stringify(history));
+      updateLive();
+      showToast(`🖐️ Manually added ${val} for ${date}`);
+      document.getElementById('manualTotal').value = "";
+      document.getElementById('manualDate').value = "";
+      showSection('home');
+    } else {
+      showToast('❌ Fill total & date!', "#f33");
+    }
+  }
+
+  function countLines() {
+    const input = document.getElementById("lineInput").value.trim();
+    const lines = input.split('\n').filter(l => l.trim().length > 0);
+
+    let total = 0;
+    let deleted = 0;
+    let fresh = 0;
+
+    lines.forEach(line => {
+      const clean = line.trim().toLowerCase();
+      if (/^\d+\.\s+deleted$/.test(clean)) {
+        deleted++;
+        total++;
+      } else if (/^\d+\.\s+[a-z0-9]{4,}\s+\d+\s+\d+$/i.test(clean)) {
+        fresh++;
+        total++;
+      } else if (/^\d+\.\s+[a-z0-9]{4,}\s+\d+$/i.test(clean)) {
+        fresh++;
+        total++;
+      }
+    });
+
+    const result = `Total Lines: ${total}  
+Deleted: ${deleted}  
+Fresh: ${fresh}`;
+    const box = document.getElementById("lineResult");
+    box.innerText = result;
+    box.style.display = "block";
+  }
+
+  function adjustLinks() {
+    const serialInput = document.getElementById("serials").value.trim().split("\n").filter(Boolean);
+    const links = document.getElementById("links").value.trim().split("\n").filter(Boolean);
+
+    let output = "";
+    let linkIndex = 0;
+    let startProcessing = false;
+
+    for (let i = 0; i < serialInput.length; i++) {
+      const line = serialInput[i].trim();
+
+      if (!startProcessing) {
+        output += line + "\n\n";
+        if (line.startsWith("****")) startProcessing = true;
+        continue;
+      }
+
+      const firstColMatch = line.match(/^(\d+\.)/);
+      if (firstColMatch) {
+        const serial = firstColMatch[1];
+        let link = links[linkIndex] ? links[linkIndex].trim() : "";
+        while (link === "") {
+          linkIndex++;
+          link = links[linkIndex] ? links[linkIndex].trim() : "";
+        }
+
+        const formattedLink = link.toLowerCase().includes("delete") ? "`deleted`" : "`" + link + "`";
+        output += `${serial} ${formattedLink}\n\n`;
+        linkIndex++;
+      }
+    }
+
+    document.getElementById("output").innerText = output.trim();
+    document.getElementById("outputSection").style.display = "block";
+    showToast("Formatted Successfully ✅");
+  }
+
+  function copyOutput() {
+    const text = document.getElementById("output").innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      showToast("Copied to Clipboard 📋");
+    });
+  }
+
+  updateLive();
+</script>
+</body>
+</html>
