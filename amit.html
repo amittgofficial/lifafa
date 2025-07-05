@@ -159,22 +159,8 @@
   <button onclick="showSection('manual')">➕ Add</button>
   <button onclick="showSection('line')">📏 Line</button>
   <button onclick="showSection('linkFormatter')">🔗 Link</button>
-</div>
-
-  <!-- POST TOOL -->
-<div id="post" class="section">
-  <h2>📝 Create Post</h2>
-  <input id="codeAmount" placeholder="Code + Amount (e.g. ABC123456 5)" />
-  <input id="channel" placeholder="Channel Name" />
-  <input id="totalNum" placeholder="Total Number" />
-  <input id="postDate" placeholder="Date (e.g. 5-5-25)" />
-  <input id="userId" placeholder="User ID or Name" />
-  <button class="action" onclick="generatePost()">📤 Generate Post</button>
-  <div class="output" id="postOutput" style="display:none;">
-    <h3>🧾 Post Output</h3>
-    <pre id="postResult"></pre>
-    <button class="action" onclick="copyPost()">📋 Copy</button>
-  </div>
+  <button onclick="showSection('post')">📝 Post</button>
+  
 </div>
 
 <div id="home" class="section active">
@@ -216,6 +202,22 @@
   </div>
 </div>
 
+<div id="post" class="section">
+  <h2>📝 Create Post</h2>
+  <input id="codeAmount" placeholder="Code + Amount (e.g. ABC123456 5)" />
+  <input id="channel" placeholder="Channel Name" />
+  <input id="totalNum" placeholder="Total Number" />
+  <input id="postDate" placeholder="Date (e.g. 5-5-25)" />
+  <input id="userId" placeholder="User ID or Name" />
+  <button class="action" onclick="generatePost()">📤 Generate Post</button>
+  <div class="output" id="postOutput" style="display:none;">
+    <h3>🧾 Post Output</h3>
+    <pre id="postResult"></pre>
+    <button class="action" onclick="copyPost()">📋 Copy</button>
+  </div>
+</div>
+
+
 <div id="toast" class="toast">Copied!</div>
 
 <script>
@@ -223,54 +225,6 @@
   let lastDate = localStorage.getItem('lastDate') || "-";
   let history = JSON.parse(localStorage.getItem('history') || '{}');
 
-
-  function generatePost() {
-  const codeAmt = document.getElementById('codeAmount').value.trim();
-  const channel = document.getElementById('channel').value.trim();
-  const total = document.getElementById('totalNum').value.trim();
-  const date = document.getElementById('postDate').value.trim();
-  const uid = document.getElementById('userId').value.trim();
-
-  if (!codeAmt || !channel || !total || !date || !uid) {
-    showToast("❌ All 5 fields are required!", "#f33");
-    return;
-  }
-
-  const match = codeAmt.match(/^(\w+)\s+(\d+)$/);
-  if (!match) {
-    showToast("❌ Format must be 'CODE123456 5'", "#f33");
-    return;
-  }
-
-  const [_, codeRaw, amount] = match;
-  const code = (codeRaw.length === 8 || codeRaw.length === 9) ? `\`${codeRaw}\`` : codeRaw;
-  const formattedCode = `${code} {${amount}}`;
-
-  const output = `𝗡𝗨𝗠𝗕𝗘𝗥:  ${formattedCode}
-
-𝗖𝗛𝗔𝗡𝗡𝗘𝗟 𝗡𝗔𝗠𝗘--  ${channel} ✅
-
-𝗧𝗢𝗧𝗔𝗟 𝗡𝗨𝗠𝗕𝗘𝗥 :-  ${total} ✅
-
-𝗗𝗔𝗧𝗘 :- ${date} ✅
-
-𝗣𝗘𝗡𝗗𝗜𝗡𝗚 𝗣𝗔𝗬𝗠𝗘𝗡𝗧:-
-
-ID:- ${uid} ✅`;
-
-  document.getElementById("postResult").innerText = output;
-  document.getElementById("postOutput").style.display = "block";
-  document.getElementById("postOutput").scrollIntoView({ behavior: "smooth" });
-  showToast("Post Ready ✅");
-}
-
-function copyPost() {
-  const text = document.getElementById("postResult").innerText;
-  navigator.clipboard.writeText(text).then(() => {
-    showToast("Copied to Clipboard 📋");
-  });
-}
-  
   function updateLive() {
     document.getElementById('totalValue').innerText = total;
     document.getElementById('dateValue').innerText = lastDate;
@@ -455,6 +409,66 @@ Fresh: ${fresh}`;
 
   function copyOutput() {
     const text = document.getElementById("output").innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      showToast("Copied to Clipboard 📋");
+    });
+  }
+  
+   function showSection(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function showToast(msg, color = "#0f0") {
+    const toast = document.getElementById('toast');
+    toast.innerText = msg;
+    toast.style.color = color;
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 2500);
+  }
+
+  function generatePost() {
+    const codeAmt = document.getElementById('codeAmount').value.trim();
+    const channel = document.getElementById('channel').value.trim();
+    const total = document.getElementById('totalNum').value.trim();
+    const date = document.getElementById('postDate').value.trim();
+    const uid = document.getElementById('userId').value.trim();
+
+    if (!codeAmt || !channel || !total || !date || !uid) {
+      showToast("❌ All 5 fields are required!", "#f33");
+      return;
+    }
+
+    const match = codeAmt.match(/^(\w+)\s+(\d+)$/);
+    if (!match) {
+      showToast("❌ First line must be like 'ABC123456 5'", "#f33");
+      return;
+    }
+
+    const [_, codeRaw, amount] = match;
+    const code = (codeRaw.length === 8 || codeRaw.length === 9) ? `\`${codeRaw}\`` : codeRaw;
+    const formattedCode = `${code} {${amount}}`;
+
+    const output = `𝗡𝗨𝗠𝗕𝗘R:-  ${formattedCode}
+
+𝗖𝗛𝗔𝗡𝗡𝗘𝗟 𝗡AME--  ${channel} ✅
+
+𝗧𝗢𝗧𝗔𝗟 N𝗨𝗠𝗕𝗘𝗥 :-  ${total} ✅
+
+𝗗𝗔𝗧𝗘 :- ${date} ✅
+
+𝗣𝗘𝗡𝗗𝗜𝗡𝗚 𝗣𝗔𝗬𝗠𝗘𝗡𝗧:-
+
+ID:- ${uid} ✅`;
+
+    document.getElementById("postResult").innerText = output;
+    document.getElementById("postOutput").style.display = "block";
+    document.getElementById("postOutput").scrollIntoView({ behavior: "smooth" });
+    showToast("Post Ready ✅");
+  }
+
+  function copyPost() {
+    const text = document.getElementById("postResult").innerText;
     navigator.clipboard.writeText(text).then(() => {
       showToast("Copied to Clipboard 📋");
     });
