@@ -368,6 +368,7 @@ Fresh: ${fresh}`;
     box.innerText = result;
     box.style.display = "block";
   }
+  document.getElementById("lineInput").value = "";
 
   function adjustLinks() {
     const serialInput = document.getElementById("serials").value.trim().split("\n").filter(Boolean);
