@@ -488,7 +488,24 @@ ID:- ${uid} ✅`;
       showToast("Copied to Clipboard 📋");
     });
   }
+function addFromLineCount() {
+  const fresh = window.lineFreshCount || 0;
+  const date = window.lineFoundDate || "";
 
+  if (fresh > 0 && date) {
+    total += fresh;
+    lastDate = date;
+    history[date] = (history[date] || 0) + fresh;
+    localStorage.setItem('total', total);
+    localStorage.setItem('lastDate', lastDate);
+    localStorage.setItem('history', JSON.stringify(history));
+    updateLive();
+    showToast(`✅ ${fresh} added for ${date}`);
+    showSection('home'); // Redirect to Home
+  } else {
+    showToast("❌ Cannot add. Missing date or fresh count.", "#f33");
+  }
+}
   updateLive();
 </script>
 </body>
