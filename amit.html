@@ -237,10 +237,20 @@
   }
 
   function showSection(id) {
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    if (id === 'history') loadHistory();
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+
+  if (id === 'history') loadHistory();
+
+  if (id === 'line') {
+    // Clear old line data
+    document.getElementById("lineInput").value = "";
+    document.getElementById("lineResult").style.display = "none";
+    document.getElementById("lineSummary").style.display = "none";
+    document.getElementById("lineDateText").innerText = "📅 Date: -";
+    document.getElementById("lineFreshText").innerText = "🆕 Fresh Lines: 0";
   }
+}
 
   function showToast(msg, color = "#0f0") {
     const toast = document.getElementById('toast');
@@ -386,7 +396,9 @@
       document.getElementById("lineSummary").style.display = "none";
     }
   }
-
+  
+  
+  
   function adjustLinks() {
     const serialInput = document.getElementById("serials").value.trim().split("\n").filter(Boolean);
     const links = document.getElementById("links").value.trim().split("\n").filter(Boolean);
