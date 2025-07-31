@@ -194,7 +194,7 @@ body.dark .bottom-nav {
 </div>
 
 <div class="box" id="toolSection">
-  <h2>WELLCOME TO CODEXBOT</h2>
+  <h2>WELLCOME TO CODEBOT</h2>
 
     <div class="spacer"></div>
     <div class="spacer"></div>
@@ -568,24 +568,7 @@ window.onload = () => {
 };
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function () {
-    navigator.serviceWorker.register('sw.js').then(function (registration) {
-      console.log('ServiceWorker registered: ', registration);
-    }).catch(function (error) {
-      console.log('ServiceWorker registration failed: ', error);
-    });
-  });
-}
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function () {
-    navigator.serviceWorker.register('sw.js').then(function (registration) {
-      console.log('ServiceWorker registered: ', registration);
-    }).catch(function (error) {
-      console.log('ServiceWorker registration failed: ', error);
-    });
-  });
-}
 function toggleDarkMode() {
   document.body.classList.toggle("dark");
   localStorage.setItem("amit_dark_mode", document.body.classList.contains("dark"));
