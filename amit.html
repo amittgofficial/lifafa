@@ -408,35 +408,35 @@
     let startProcessing = false;
 
     for (let i = 0; i < serialInput.length; i++) {
-      const line = serialInput[i].trim();
+        const line = serialInput[i].trim();
 
-      if (!startProcessing) {
-        output += line + "\n\n";
-        if (line.startsWith("****")) startProcessing = true;
-        continue;
-      }
-
-      const firstColMatch = line.match(/^(\d+\.)/);
-      if (firstColMatch) {
-        const serial = firstColMatch[1];
-        let link = links[linkIndex] ? links[linkIndex].trim() : "";
-        while (link === "") {
-          linkIndex++;
-          link = links[linkIndex] ? links[linkIndex].trim() : "";
+        if (!startProcessing) {
+            output += line + "\n\n";
+            if (line.startsWith("****")) startProcessing = true;
+            continue;
         }
 
-        const formattedLink = link.toLowerCase().includes("delete") ? "`deleted`" : "`" + link + "`";
-        output += `${serial} ${formattedLink}\n\n`;
-        linkIndex++;
-      }
+        const firstColMatch = line.match(/^(\d+)\./); // dot capture ke bahar
+        if (firstColMatch) {
+            const serial = firstColMatch[1]; // sirf number
+            let link = links[linkIndex] ? links[linkIndex].trim() : "";
+            while (link === "") {
+                linkIndex++;
+                link = links[linkIndex] ? links[linkIndex].trim() : "";
+            }
+
+            const formattedLink = link.toLowerCase().includes("delete") ? "`deleted`" : "`" + link + "`";
+            output += `${serial} ${formattedLink}\n\n`;
+            linkIndex++;
+        }
     }
 
     document.getElementById("output").innerText = output.trim();
     document.getElementById("outputSection").style.display = "block";
     document.getElementById("outputSection").scrollIntoView({ behavior: "smooth" });
     showToast("Formatted Successfully ✅");
-  }
-
+    }
+  
   function copyOutput() {
     const text = document.getElementById("output").innerText;
     navigator.clipboard.writeText(text).then(() => {
