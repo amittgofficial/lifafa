@@ -283,6 +283,7 @@ body.dark .bottom-nav {
   <div class="popup-content" onclick="event.stopPropagation()" style="display: flex; flex-direction: column; align-items: stretch; gap: 12px; width: 250px;">
     <span onclick="hideBottomPopup()" style="align-self: flex-end;">❌</span>
     <h3 style="text-align: center;">🔗 Useful Tools</h3>
+    <button class="btn-list" onclick="window.open('https://mahakalxlifafa.in/numberarea', '_blank')"> 🤙MXL</button>
     <button class="btn-list" onclick="window.open('https://infotechlifafa.com/lifafa/num.php', '_blank')">💼 Infotech</button>
     <button class="btn-save" onclick="window.open('https://snapwallet.in/view-number-tools', '_blank')">💰 Snapwallet</button>
     <button class="btn-mono" onclick="window.open('https://fastxlifafa.in/lifafa/numberarea.php', '_blank')">🚀 FastXl</button>
@@ -380,7 +381,7 @@ function submitListPopup() {
 function insertCode() {
   const code = document.getElementById("codeInput").value.trim();
   const number = document.getElementById("numberInput").value.trim();
-  if (!code || !number || (code.length !== 8 && code.length !== 9) || isNaN(number)) {
+  if (!code || !number || (code.length !== 8 && code.length !== 9 && code.length !== 11) || isNaN(number)) {
     showToast("❌ Format: ABC123456 + 2300", "#ff1744");
     return;
   }
