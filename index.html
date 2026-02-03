@@ -410,7 +410,7 @@ function showList() {
   const data = JSON.parse(saved);
   let output = `**${data.date}**\n\n****\n\n`;
   for (let item of data.list) {
-    let val = item.value.replace(/\b([A-Za-z0-9]{8,9})\b/g, "`$1`");
+    let val = item.value.replace(/\b([A-Za-z0-9]{8,9,11})\b/g, "`$1`");
     output += `${item.serial}.   ${val}\n\n`;
   }
   resultEl.innerText = output;
@@ -475,7 +475,7 @@ function submitEdit() {
 
 function runMono() {
   const lines = document.getElementById("monoInput").value.trim().split("\n");
-  let output = lines.map(line => line.trim()).filter(line => line).map(line => line.replace(/\b([A-Za-z0-9]{8,9})\b/, "`$1`")).join("\n\n");
+  let output = lines.map(line => line.trim()).filter(line => line).map(line => line.replace(/\b([A-Za-z0-9]{8,9,11})\b/, "`$1`")).join("\n\n");
   document.getElementById("monoResult").innerText = output;
   document.getElementById("monoResult").style.display = "block";
   document.getElementById("copyMono").style.display = "inline-block";
